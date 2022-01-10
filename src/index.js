@@ -1,15 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import * as actions from './store/actionTypes';
-import { createStore } from './store/createStore';
-import { taskReducer } from './store/taskReducer';
+import { initiateStore } from './store/store';
+import * as actions from './store/actions';
 
-const initialState = [
-  { id: 1, title: 'Task 1', completed: false },
-  { id: 2, title: 'Task 2', completed: false },
-]
-
-const store = createStore(taskReducer, initialState);
+const store = initiateStore();
 
 const App = () => {
   const [state, setState] = useState(store.getState());
@@ -20,15 +14,16 @@ const App = () => {
   }, []);
 
   const completeTask = (taskId) => {
-    store.dispatch({ type: actions.taskUpdated, payload: { id: taskId, completed: true } });
+    store.dispatch(actions.taskCompleted(taskId));
   };
 
   const changeTitle = (taskId) => {
-    store.dispatch({
-      type: actions.taskUpdated,
-      payload: { id: taskId, title: `New title for ${taskId}` },
-    });
+    store.dispatch(actions.titleChanged(taskId));
   };
+
+  const deleteTask = (taskId) => {
+    store.dispatch(actions.taskDeleted(taskId));
+  }
 
   return (
     <>
@@ -40,6 +35,7 @@ const App = () => {
             <p>{`Completed: ${item.completed}`}</p>
             <button onClick={() => completeTask(item.id)}>Complete</button>
             <button onClick={() => changeTitle(item.id)}>Change</button>
+            <button onClick={() => deleteTask(item.id)}>Delete</button>
             <hr />
           </li>
         ))}
