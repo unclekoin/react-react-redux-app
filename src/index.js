@@ -1,25 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
+import { Provider, useSelector, useDispatch } from 'react-redux';
+import { getError } from './store/errors';
 import configureStore from './store/store';
-import { titleChanged, taskDeleted, completeTask, getTasks } from './store/task';
+import {
+  titleChanged,
+  taskDeleted,
+  completeTask,
+  loadTasks,
+  getTasks,
+  getTasksLoadingStatus,
+} from './store/task';
 
 const store = configureStore();
 
 const App = () => {
-  const [state, setState] = useState(store.getState());
+  const state = useSelector(getTasks());
+  const isLoading = useSelector(getTasksLoadingStatus());
+  const error = useSelector(getError());
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    store.dispatch(getTasks());
-    store.subscribe(() => setState(store.getState()));
+    dispatch(loadTasks());
   }, []);
 
   const changeTitle = (taskId) => {
-    store.dispatch(titleChanged(taskId));
+    dispatch(titleChanged(taskId));
   };
 
   const deleteTask = (taskId) => {
-    store.dispatch(taskDeleted(taskId));
-  }
+    dispatch(taskDeleted(taskId));
+  };
+
+  if (isLoading) return <h1>Loading...</h1>
+
+  if (error) return <p>{error}</p>
 
   return (
     <>
@@ -29,7 +44,9 @@ const App = () => {
           <li key={item.id}>
             <h3>{item.title}</h3>
             <p>{`Completed: ${item.completed}`}</p>
-            <button onClick={() => store.dispatch(completeTask(item.id))}>Complete</button>
+            <button onClick={() => dispatch(completeTask(item.id))}>
+              Complete
+            </button>
             <button onClick={() => changeTitle(item.id)}>Change</button>
             <button onClick={() => deleteTask(item.id)}>Delete</button>
             <hr />
@@ -42,7 +59,9 @@ const App = () => {
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <App />
+    </Provider>
   </React.StrictMode>,
   document.getElementById('root')
 );
